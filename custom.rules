@@ -1,0 +1,123 @@
+# Alert Packet Anomaly (Traffic Spike / Burst)
+alert ip $HOME_NET any -> $EXTERNAL_NET any (
+    msg:"Traffic Spike Detected - Possible Flood"; 
+    threshold:type both, track by_src, count 200, seconds 1; 
+    sid:1000001; rev:1;
+)
+
+# Alert DDoS (Many hosts or One Destination Distributed Attack)
+alert ip any any -> $HOME_NET any (
+    msg:"Possible DDoS Attack - Multiple Sources"; 
+    threshold:type both, track by_dst, count 500, seconds 1; 
+    sid:1000002; rev:1;
+)
+
+# DoS Single Host Flooding
+alert ip $EXTERNAL_NET any -> $HOME_NET any (
+    msg:"DoS Detected - Single Source Flood"; 
+    detection_filter:track by_src, count 200, seconds 1; 
+    sid:1000003; rev:1;
+)
+
+# Ping / ICMP Flood
+alert icmp any any -> $HOME_NET any (
+    msg:"ICMP Ping Flood"; 
+    detection_filter:track by_src, count 50, seconds 1; 
+    sid:1000004; rev:1;
+)
+
+# Nmap SYN Scan
+alert tcp any any -> $HOME_NET any (
+    flags:S; 
+    msg:"Nmap SYN Scan Detected"; 
+    threshold:type both, track by_src, count 10, seconds 1; 
+    sid:1000005; rev:1;
+)
+
+# Nmap XMAS Scan
+alert tcp any any -> $HOME_NET any (
+    flags:FPU; 
+    msg:"Nmap XMAS Scan Detected"; 
+    sid:1000006; rev:1;
+)
+
+# Nmap NULL Scan
+alert tcp any any -> $HOME_NET any (
+    flags:0; 
+    msg:"Nmap NULL Scan Detected"; 
+    sid:1000007; rev:1;
+)
+
+# DirBuster / GoBuster Scan (Characteristic User-Agent)
+alert http any any -> $HOME_NET any (
+    msg:"Web Scan Detected (DirBuster/GoBuster)"; 
+    content:"User-Agent|3a|"; http_header;
+    content:"dirbuster"; nocase; http_header; 
+    sid:1000008; rev:1;
+)
+
+alert http any any -> $HOME_NET any (
+    msg:"Web Scan Detected (GoBuster)"; 
+    content:"gobuster"; nocase; http_header; 
+    sid:1000009; rev:1;
+)
+
+# Directory Brute Force Common Paths
+alert http any any -> $HOME_NET any (
+    msg:"Common Web Recon Attempt"; 
+    content:"/admin"; http_uri; 
+    sid:1000010; rev:1;
+)
+
+alert http any any -> $HOME_NET any (
+    msg:"Common Web Recon Attempt"; 
+    content:"/login"; http_uri; 
+    sid:1000011; rev:1;
+)
+
+alert http any any -> $HOME_NET any (
+    msg:"Common Web Recon Attempt"; 
+    content:"/.git"; http_uri; 
+    sid:1000012; rev:1;
+)
+
+# SQL Injection Attempt
+alert http any any -> $HOME_NET any (
+    msg:"SQL Injection Attempt"; 
+    content:"' OR 1=1"; nocase; http_uri; 
+    sid:1000013; rev:1;
+)
+
+# XSS Attack
+alert http any any -> $HOME_NET any (
+    msg:"XSS Attempt"; 
+    content:"<script>"; nocase; http_uri; 
+    sid:1000014; rev:1;
+)
+
+# Shellshock
+alert http any any -> $HOME_NET any (
+    msg:"ShellShock Attempt"; 
+    content:"() { :; }"; http_header; 
+    sid:1000015; rev:1;
+)
+
+# SSH Brute Force Detection
+alert tcp any any -> $HOME_NET 22 (
+    msg:"SSH Brute Force Attempt"; 
+    detection_filter:track by_src, count 10, seconds 60; 
+    sid:1000016; rev:1;
+)
+
+# Suspicious User-Agent (Python Requests / curl)
+alert http any any -> $HOME_NET any (
+    msg:"Suspicious User-Agent (Python / Curl)"; 
+    content:"User-Agent|3a| Python"; nocase; http_header; 
+    sid:1000017; rev:1;
+)
+
+alert http any any -> $HOME_NET any (
+    msg:"Suspicious User-Agent (curl)"; 
+    content:"curl/"; nocase; http_header; 
+    sid:1000018; rev:1;
+)
